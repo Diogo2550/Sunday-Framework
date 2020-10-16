@@ -1,0 +1,6 @@
+{
+    "allowed_hosts": "*",
+    "security": {
+        "jwt_secret": "jwt_secret"
+    }
+}
