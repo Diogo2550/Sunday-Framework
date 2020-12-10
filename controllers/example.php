@@ -1,26 +1,37 @@
 <?php
 
-require_once ROOT_DIR . "\\_core\\base_controller.php";
-require_once ROOT_DIR . "\\_security\\jwt_auth.php";
+require_once ROOT_DIR . "/_core/base_controller.php";
+require_once ROOT_DIR . "/models/example_model.php";
 
 class ExampleController extends BaseController {
 
     public function get($id = null) {
+        $example = new ExampleModel;
+        $example->id = $id;
+
         if(isset($id) && !empty($id))
-            $this->query->where(['id'], [$id]);
+            $this->query->where($example, 'id');
+
         return $this->repository->select($this->query);
     }
 
     public function post() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $this->query->insert(['valores'],['campos']);
 
+        $example = new ExampleModel;
+        $example->patchValues($data);
+
+        $this->query->insert($data);
         return $this->repository->insert($this->query);
     }
 
     public function delete($id) {
-        $this->query->where(['id'],[$id]);
+        $example = new ExampleModel;
+        $example->id = $id;
+        
+        $example->patchValues($example);
 
+        $this->query->delete($example);
         try {
             $this->repository->delete($this->query);
             
@@ -33,21 +44,10 @@ class ExampleController extends BaseController {
     public function put() {
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $id = $data['id'];
-        $fields = [];
-        $values = [];
+        $example = new ExampleModel;
+        $example->patchValues($data);
 
-        $keys = array_keys($data);
-        foreach ($keys as $key => $value) {
-            if($value != 'id') {
-                array_push($fields, $value);
-                array_push($values, $data[$value]);
-            }
-        }
-
-        $this->query->where(['id'], [$id]);
-        $this->query->update($fields, $values);
-
+        $this->query->update($example);
         return $this->repository->update($this->query);
     }
 

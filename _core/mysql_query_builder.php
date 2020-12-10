@@ -5,56 +5,122 @@ require_once './interfaces/query_builder.php';
 class MySQLQueryBuilder implements IQueryBuilder {
 
     private $where;
-    private $order_by;
-    private $group_by;
+    private $orderBy;
+    private $groupBy;
     private $table;
     private $limit;
+    private $join;
 
-    private $insert;
     private $select;
+    private $insert;
     private $update;
+    private $delete;
 
-    function set_table(string $table_name):void {
-        $this->table = $table_name;
+    function setTable(string $tableName):void {
+        $this->table = $tableName;
     }
 
-    function insert(array $values, array $fields = null):IQueryBuilder {
-        $this->insert['fields'] = $fields;
-        $this->insert['values'] = $values;
+    function select(BaseModel $model):IQueryBuilder {
+        $this->table = $model->getModelName() . "s";
+        $this->select['fields'] = array();
+
+        foreach($model->getProperties() as $property) {
+            $fieldName = $model->getModelName() . '_' . $property;
+            array_push($this->select['fields'], $fieldName);
+        }
 
         return $this;
     }
 
-    function select(array $values = null):IQueryBuilder {
-        $this->select = $values;
+    function insert(BaseModel $model):IQueryBuilder {
+        $this->table = $model->getModelName() . "s";
+
+        $this->insert['fields'] = array();
+        $this->insert['values'] = array();
+
+        foreach($model->getProperties() as $property) {
+            if($model->$property !== null) {
+                $fieldName = $model->getModelName() . '_' . $property;
+                $value = $model->$property === false ? 0 : $model->$property;
+                
+                array_push($this->insert['fields'], $fieldName);
+                array_push($this->insert['values'], $value);
+            }
+        }
 
         return $this;
     }
 
-    function update(array $fields, array $values) {
-        $this->update['fields'] = $fields;
-        $this->update['values'] = $values;
+    function update(BaseModel $model):IQueryBuilder {
+        $this->table = $model->getModelName() . "s";
+
+        $this->update['fields'] = array();
+        $this->update['values'] = array();
+
+        $this->where['fields'] = array();
+        $this->where['values'] = array();
+
+        $primaryKey = $model->getPrimaryKey();
+        $fieldName = $model->getModelName() . '_' . $primaryKey;
+
+        array_push($this->where['fields'], $fieldName);
+        array_push($this->where['values'], $model->$primaryKey);
+
+        foreach($model->getProperties() as $property) {
+            if($model->$property != null) {
+                $fieldName = $model->getModelName() . '_' . $property;
+                $value = $model->$property === false ? 0 : $model->$property;
+                
+                array_push($this->update['fields'], $fieldName);
+                array_push($this->update['values'], $value);
+            }
+        }
 
         return $this;
     }
 
-    function where(array $fields, array $values):IQueryBuilder {
-        $this->where['fields'] = $fields;
-        $this->where['values'] = $values;
+    function delete(BaseModel $model):IQueryBuilder {
+        $this->table = $model->getModelName() . "s";
+
+        $this->where['fields'] = array();
+        $this->where['values'] = array();
+
+        $primaryKey = $model->getPrimaryKey();
+        $fieldName = $model->getModelName() . '_' . $primaryKey;
+
+        array_push($this->where['fields'], $fieldName);
+        array_push($this->where['values'], $model->$primaryKey);
+        
+        return $this;
+    }
+
+    function where(BaseModel $model, string $fieldName):IQueryBuilder {
+        $this->where['fields'] = array();
+        $this->where['values'] = array();
+
+        if($model->$fieldName !== null) {
+            $field = $model->getModelName() . '_' . $fieldName;
+            $value = $model->$fieldName === false ? 0 : $model->$fieldName;
+            
+            array_push($this->where['fields'], $field);
+            array_push($this->where['values'], $value);
+        } else {
+            throw new Exception("Campo $fieldName com valor nulo detectado");
+        }
+        
+        return $this;
+    }
+
+    function orderBy(array $fields, array $values):IQueryBuilder {
+        $this->orderBy['fields'] = $fields;
+        $this->orderBy['values'] = $values;
 
         return $this;
     }
 
-    function order_by(array $fields, array $values):IQueryBuilder {
-        $this->order_by['fields'] = $fields;
-        $this->order_by['values'] = $values;
-
-        return $this;
-    }
-
-    function group_by(array $fields, array $values):IQueryBuilder {
-        $this->group_by['fields'] = $fields;
-        $this->group_by['values'] = $values;
+    function groupBy(array $fields, array $values):IQueryBuilder {
+        $this->groupBy['fields'] = $fields;
+        $this->groupBy['values'] = $values;
 
         return $this;
     }
@@ -75,60 +141,80 @@ class MySQLQueryBuilder implements IQueryBuilder {
         return $this;
     }
 
-    public function get_insert_query():string {
+    function join(array $tables, array $fields, array $values):IQueryBuilder {
+        $this->join['tables'] = $tables;
+        $this->join['fields'] = $fields;
+        $this->join['values'] = $values;
+
+        return $this;
+    }
+
+    public function getInsertQuery():string {
         $query = ["INSERT", "INTO", "$this->table"];
 
         if($this->insert['fields']) {
-            $insert_fields = implode(',', $this->insert['fields']);
+            $insertFields = implode(',', $this->insert['fields']);
 
-            $query = $this->insert_on_query($query, ["($insert_fields)"]);
+            $query = $this->insertOnQuery($query, ["($insertFields)"]);
         }
 
-        $insert_values = implode("','", $this->insert['values']);
-        $query = $this->insert_on_query($query, ["VALUES", "('$insert_values')"]);
+        $insertValues = implode("','", $this->insert['values']);
+        $query = $this->insertOnQuery($query, ["VALUES", "('$insertValues')"]);
 
-        $this->restart_query();
+        $this->restartQuery();
         return implode(' ', $query);
     }
 
-    public function get_select_query():string {
-        $select = $this->select ? implode(',', $this->select) : '*';
+    public function getSelectQuery():string {
+        $selectFields = $this->select['fields'] ? implode(',', $this->select['fields']) : '*';
 
-        $query = ["SELECT", "$select"];
+        $query = ["SELECT", "$selectFields"];
 
-        $query = $this->insert_on_query($query, ["FROM", "`$this->table`"]);
+        $query = $this->insertOnQuery($query, ["FROM", "`$this->table`"]);
 
-        $clausure_command = $this->make_clausure($this->where['fields'], $this->where['values']);
-        $query = $this->insert_on_query($query, [$clausure_command], 'WHERE');
+        $join = $this->join;
+        if(isset($join) && !empty($join)) {
+            for($i = 0; $i < count($join['fields']); $i++) {
+                $table = $join['tables'][$i];
+                $field = $join['fields'][$i];
+                $value = $join['values'][$i];
+                $query = $this->insertOnQuery($query, [$table, 'ON', "($table.$field=$this->table.$value)"], "JOIN");
+            }
+        }
 
-        $this->restart_query();
+        $clausureCommand = $this->makeClausure($this->where['fields'], $this->where['values']);
+        $query = $this->insertOnQuery($query, [$clausureCommand], 'WHERE');
+
+        $this->restartQuery();
         return implode(' ', $query);
     }
 
-    public function get_update_query():string {
+    public function getUpdateQuery():string {
         $query = ["UPDATE", "$this->table", "SET"];
 
-        $clausure_command = $this->make_clausure($this->update['fields'], $this->update['values']);
-        $query = $this->insert_on_query($query, [$clausure_command]);
+        $clausureCommand = $this->makeClausure($this->update['fields'], $this->update['values']);
+        $query = $this->insertOnQuery($query, [$clausureCommand]);
 
-        $clausure_command = $this->make_clausure($this->where['fields'], $this->where['values']);
-        $query = $this->insert_on_query($query, [$clausure_command], 'WHERE');
+        $clausureCommand = $this->makeClausure($this->where['fields'], $this->where['values']);
+        $query = $this->insertOnQuery($query, [$clausureCommand], 'WHERE');
         
-        $this->restart_query();
+        $this->restartQuery();
         return implode(' ', $query);
     }
 
-    public function get_delete_query():string {
+    public function getDeleteQuery():string {
         $query = ["DELETE", "FROM", "$this->table"];
 
-        $clausure_command = $this->make_clausure($this->where['fields'], $this->where['values']);
-        $query = $this->insert_on_query($query, [$clausure_command], 'WHERE');
+        $clausureCommand = null;
+        $clausureCommand = $this->makeClausure($this->where['fields'], $this->where['values']);
+        
+        $query = $this->insertOnQuery($query, [$clausureCommand], 'WHERE');
 
-        $this->restart_query();
+        $this->restartQuery();
         return implode(' ', $query);
     }
 
-    private function insert_on_query($query, $array, $clausure = null) {
+    private function insertOnQuery($query, $array, $clausure = null) {
         if($clausure == null) {
             array_push($query, ...$array);
 
@@ -143,7 +229,7 @@ class MySQLQueryBuilder implements IQueryBuilder {
         return $query;
     }
     
-    private function make_clausure($fields, $values):string {
+    private function makeClausure($fields, $values):string {
         if(!$fields) {
             return "";
         }
@@ -156,7 +242,6 @@ class MySQLQueryBuilder implements IQueryBuilder {
             if($i != 0) {
                 $clausure .= ',';
             }
-
             if(gettype($value) == 'string') {
                 $clausure .= "$field='$value'"; 
             } else {
@@ -167,11 +252,17 @@ class MySQLQueryBuilder implements IQueryBuilder {
         return $clausure;
     }
 
-    private function restart_query() {
+    private function restartQuery() {
         $this->where = null;
-        $this->order_by = null;
-        $this->group_by = null;
+        $this->orderBy = null;
+        $this->groupBy = null;
         $this->limit = null;
+        $this->join = null;
+
+        $this->select = null;
+        $this->insert = null;
+        $this->update = null;
+        $this->delete = null;
     }
-    
+
 }

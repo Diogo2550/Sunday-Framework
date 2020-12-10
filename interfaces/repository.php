@@ -1,6 +1,6 @@
 <?php
 
-require_once ROOT_DIR . '\\interfaces\\query_builder.php';
+require_once ROOT_DIR . '/interfaces/query_builder.php';
 
 interface IRepository {
 

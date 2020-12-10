@@ -2,9 +2,9 @@
 
 interface IAuthenticate {
 
-    public function create_token($array_params, $array_values);
-    public function check_token();
-    public function set_token($token);
-    public function has_token():bool;
+    public function createToken($array_params, $array_values);
+    public function checkToken();
+    public function setToken($token);
+    public function hasToken():bool;
 
 }

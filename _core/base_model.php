@@ -2,19 +2,31 @@
 
 class BaseModel {
 
-    public function patch_values($array) {
-        $class_name = get_class($this);
+    protected $primaryKey;
+    protected $foreignKey;
 
-        $propertys = get_class_vars($class_name);
-        foreach(array_keys($propertys) as $property) {
-            $this->$property = array_key_exists($property, $array) ? $array[$property] : null;
+    public function patchValues($array) {
+        $modelName = $this->getModelName();
+
+        $class = new ReflectionClass($this);
+        $props = $class->getProperties(ReflectionProperty::IS_PUBLIC);
+        foreach($props as $property) {
+            $propName = $property->getName();
+            $propertyOnTable = $modelName . '_' . $propName;
+
+            if(array_key_exists($propertyOnTable, $array)) {
+                $this->$propName = $array[$propertyOnTable];
+                continue;
+            }
+
+            $this->$propName = array_key_exists($propName, $array) ? $array[$propName] : null;
         }
     }
 
-    public function to_lower_propertys() {
-        $class_name = get_class($this);
+    public function toLowerProperties() {
+        $className = get_class($this);
         
-        $propertys = get_class_vars($class_name);
+        $propertys = get_class_vars($className);
         $values = get_object_vars($this);
         foreach(array_keys($propertys) as $property) {
             if(gettype($property) == 'string') {
@@ -23,6 +35,39 @@ class BaseModel {
         }
     }
 
+    public function getModelName() {
+        $className = get_class($this);
+        $modelName = substr($className, 0, strlen($className) - strlen('Model'));
+
+        return strtolower($modelName);
+    }
+
+    public function getProperties() {
+        $class = new ReflectionClass($this);
+        $properties = $class->getProperties(ReflectionProperty::IS_PUBLIC);
+        $ownProperties = array();
+
+        foreach ($properties as $property) {
+            $ownProperties[] = $property->getName();
+        }
+
+        return $ownProperties;
+    }
+
+    public function getPrimaryKey() {
+        return $this->primaryKey;
+    }
+
+    function convertToArrayAssoc() {
+        $reflectionClass = new ReflectionClass(get_class($this));
+        $array = array();
+        foreach ($reflectionClass->getProperties(ReflectionProperty::IS_PUBLIC | ReflectionProperty::IS_PRIVATE) as $property) {
+            $property->setAccessible(true);
+            $array[$property->getName()] = $property->getValue($this);
+            $property->setAccessible(false);
+        }
+        return $array;
+    }
 
 }
 

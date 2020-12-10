@@ -1,10 +1,11 @@
 <?php
 
-require_once ROOT_DIR . '\\interfaces\\repository.php';
-require_once ROOT_DIR . '\\interfaces\\authenticate.php';
-require_once ROOT_DIR . "\\interfaces\\query_builder.php";
-require_once ROOT_DIR . '\\models\\user_model.php';
-require_once ROOT_DIR . "\\_core\\mysql_query_builder.php";
+require_once ROOT_DIR . '/interfaces/repository.php';
+require_once ROOT_DIR . '/interfaces/authenticate.php';
+require_once ROOT_DIR . "/interfaces/query_builder.php";
+require_once ROOT_DIR . "/_core/mysql_query_builder.php";
+require_once ROOT_DIR . "/_core/http_response_builder.php";
+
 
 abstract class BaseController {
     
@@ -12,22 +13,23 @@ abstract class BaseController {
     protected $repository;
     protected $table;
     protected $query;
+    protected $data;
 
-    public function __construct(IAuthenticate $auth, IRepository $repository, IQueryBuilder $builder) {
+    public function __construct(IRepository $repository, IQueryBuilder $builder) {
         $this->repository = $repository;
-        $this->auth = $auth;
 
-        $this->table = $this->get_controller_name();
+        $this->table = $this->getControllerName();
         $this->query = $builder;
 
-        $this->query->set_table($this->table);
+        $this->query->setTable($this->table);
+        $this->data = json_decode(file_get_contents("php://input"), true);
     }
 
-    protected function get_controller_name() {
-        $class_name = lcfirst(get_class($this));
-        $table_name = substr($class_name, 0, strlen($class_name) - strlen("Controller"));
+    protected function getControllerName() {
+        $className = lcfirst(get_class($this));
+        $tableName = substr($className, 0, strlen($className) - strlen("Controller"));
 
-        return $table_name;
+        return $tableName;
     }
     
 }

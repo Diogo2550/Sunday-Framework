@@ -13,10 +13,9 @@ if(empty($_REQUEST)) {
         $config = json_decode(file_get_contents("settings.json"), true);
         define("SETTINGS", $config);
 
-        $app = new RestAPI();
-        $app->define_repository($mysqli);
+        $app = new RestAPI($mysqli, new HttpResponseBuilder);
 
-        echo $app->route($_REQUEST);
+        echo json_encode($app->route($_REQUEST));
         
     }
 }
