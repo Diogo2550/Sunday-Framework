@@ -1,6 +1,9 @@
 {
-    "allowed_hosts": "*",
-    "security": {
-        "jwt_secret": "jwt_secret"
-    }
+    "database_con": {
+        "host": "localhost",
+        "username": "root",
+        "password": "99651170",
+        "db_name": "sunday_framework"
+    },
+    "allowed_hosts": "*"
 }

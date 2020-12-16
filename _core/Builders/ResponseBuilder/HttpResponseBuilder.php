@@ -1,19 +1,19 @@
 <?php
 
-require_once ROOT_DIR . '/interfaces/http_response_builder.php';
+require_once './_Core/Interfaces/IHttpResponseBuilder.php';
 
 class HttpResponseBuilder implements IHttpResponseBuilder {
 
     private $code = 200;
     private $message;
 
-    public function code(int $code):IHttpResponseBuilder {
+    public function setCode(int $code): IHttpResponseBuilder {
         $this->code = $code;
      
         return $this;
     }
 
-    public function message($data):IHttpResponseBuilder {
+    public function setMessage($data): IHttpResponseBuilder {
         $this->message = $data;
 
         return $this;

@@ -2,8 +2,8 @@
 
 class BaseModel {
 
-    protected $primaryKey;
-    protected $foreignKey;
+    protected $primaryKey = null;
+    protected $foreignKey = null;
 
     public function patchValues($array) {
         $modelName = $this->getModelName();
@@ -19,7 +19,8 @@ class BaseModel {
                 continue;
             }
 
-            $this->$propName = array_key_exists($propName, $array) ? $array[$propName] : null;
+            if(array_key_exists($propName, $array))
+                $this->$propName = $array[$propName];
         }
     }
 

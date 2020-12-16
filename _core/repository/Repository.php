@@ -1,18 +1,13 @@
 <?php
 
-include_once ROOT_DIR . '/interfaces/repository.php';
-require_once ROOT_DIR . '/_core/database/database_con.php';
+include_once './_Core/Interfaces/IRepository.php';
 
 class Repository implements IRepository {
 
     private $mysqli;
 
-    function __construct($db_host, $db_username, $db_password, $db_name) {
-        $this->mysqli = new mysqli($db_host, $db_username, $db_password);
-
-        if(!$this->mysqli->select_db($db_name)) {
-            $this->mysqli->query("CREATE DATABASE $db_name");
-        }
+    function __construct($mysqli) {
+        $this->mysqli = $mysqli;
     }
 
     public function insert(IQueryBuilder $query_builder) {
@@ -27,18 +22,34 @@ class Repository implements IRepository {
         return $this->mysqli->insert_id;
     }
 
-    public function select(IQueryBuilder $query_builder):array {
+    public function select(IQueryBuilder $query_builder): object {
         $query = $query_builder->getSelectQuery();
         
         $result = $this->mysqli->query($query);
-        $data = array();
+        $model = new ExampleModel;
 
+        if($row = $result->fetch_assoc()) {
+            $model_name = explode('_', array_keys($row)[0])[0] . 'Model';
+            $model = new $model_name();
+
+            $model->patchValues($row);
+        }
+
+        return $model;
+    }
+
+    function selectAll(IQueryBuilder $query_builder): array {
+        $query = $query_builder->getSelectQuery();
+        
+        $result = $this->mysqli->query($query);
+        
+        $data = array();
         if($result) {
             while($row = $result->fetch_assoc()) {
                 $model_name = explode('_', array_keys($row)[0])[0] . 'Model';
                 $model = new $model_name();
 
-                $model->patch_values($row);
+                $model->patchValues($row);
                 array_push($data, $model);
             }
         }
@@ -62,12 +73,14 @@ class Repository implements IRepository {
         return $this->mysqli->insert_id;
     }
 
-}
+    function count(): int {
+        return 0;
+    }
 
-$mysqli = new Repository($db_host, $db_username, $db_password,$db_name);
+    function getLastId(): int {
+        return 0;
+    }
 
-if (mysqli_connect_errno()) {
-    die('Error : ('. $mysqli->mysqli->connect_errno .') '. $mysqli->mysqli->connect_error);
 }
 
 ?>

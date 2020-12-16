@@ -1,35 +1,36 @@
 <?php
 
-require_once ROOT_DIR . "/_core/base_controller.php";
-require_once ROOT_DIR . "/models/example_model.php";
+require_once './_Core/BaseController.php';
+require_once './Models/ExampleModel.php';
 
 class ExampleController extends BaseController {
 
     public function get($id = null) {
         $example = new ExampleModel;
-        $example->id = $id;
+        $example->id = $id ? $id : 0;
 
-        if(isset($id) && !empty($id))
+        $this->query->select($example);
+        if($id) {
             $this->query->where($example, 'id');
-
-        return $this->repository->select($this->query);
+            return $this->repository->select($this->query);
+        }
+        
+        return $this->repository->selectAll($this->query);
     }
 
     public function post() {
-        $data = json_decode(file_get_contents("php://input"), true);
+        $data = $this->data;
 
         $example = new ExampleModel;
         $example->patchValues($data);
 
-        $this->query->insert($data);
+        $this->query->insert($example);
         return $this->repository->insert($this->query);
     }
 
     public function delete($id) {
         $example = new ExampleModel;
         $example->id = $id;
-        
-        $example->patchValues($example);
 
         $this->query->delete($example);
         try {
@@ -42,7 +43,7 @@ class ExampleController extends BaseController {
     }
 
     public function put() {
-        $data = json_decode(file_get_contents("php://input"), true);
+        $data = $this->data;
 
         $example = new ExampleModel;
         $example->patchValues($data);
