@@ -1,10 +1,19 @@
 {
     "name": "diogoadc/sunday-framework",
+    "description": "Uma framework criada para pessoas que querem aprender sobre o universo do backend, porém, possui somente os dias de domingo para praticar.",
+    "version": "v0.2.0",
+    "type": "project",
+    "homepage": "https://github.com/Diogo2550/Sunday-Framework",
+    "license": "MIT",
     "authors": [
         {
             "name": "Diogo Alves da Cruz",
-            "email": "Diogo2560@gmail.com"
+            "email": "Diogo2560@gmail.com",
+            "homepage": "https://www.linkedin.com/in/diogo-alves-2ba006158/",
+            "role": "Developer"
         }
     ],
-    "require": {}
+    "require": {
+        "php" : ">=8.0.0"
+    }
 }
