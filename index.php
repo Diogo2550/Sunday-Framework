@@ -7,15 +7,10 @@ require_once './RestApi.php';
 $config = json_decode(file_get_contents("Settings.json"), true);
 define("SETTINGS", $config);
 
-
-$connectionSettings = SETTINGS['database_con'];
-$con = new MySQLDatabaseBuilder($connectionSettings);
-$con->createConnetion()->autoCreateDatabase()->autoCreateTables();
-
 if(isset($_REQUEST) && $_REQUEST['url'] == "") {
     printMessage("Bem vindo ao Sunday Framework!");
     printMessage("Caso essa seja sua primeira vez utilizando nossa API, sinta-se livre para ver a documentação e aprender sobre como utiliza-la em nosso GitHub.");
-    printMessage("<a href='http://localhost:4200'>GitHub</a>");
+    printMessage("<a href='https://github.com/Diogo2550/Sunday-Framework'>GitHub</a>");
 
 } else {
     useDefaultRequestOptions();

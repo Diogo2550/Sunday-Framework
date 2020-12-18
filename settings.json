@@ -2,7 +2,7 @@
     "database_con": {
         "host": "localhost",
         "username": "root",
-        "password": "99651170",
+        "password": "password",
         "db_name": "sunday_framework"
     },
     "allowed_hosts": "*"
