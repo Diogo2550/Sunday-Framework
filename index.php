@@ -7,6 +7,10 @@ require_once './RestApi.php';
 $config = json_decode(file_get_contents("Settings.json"), true);
 define("SETTINGS", $config);
 
+$connectionSettings = SETTINGS['database_con'];
+$con = new MySQLDatabaseBuilder($connectionSettings);
+$con->createConnetion()->autoCreateDatabase()->autoCreateTables();
+
 if(isset($_REQUEST) && $_REQUEST['url'] == "") {
     printMessage("Bem vindo ao Sunday Framework!");
     printMessage("Caso essa seja sua primeira vez utilizando nossa API, sinta-se livre para ver a documentação e aprender sobre como utiliza-la em nosso GitHub.");
@@ -14,10 +18,6 @@ if(isset($_REQUEST) && $_REQUEST['url'] == "") {
 
 } else {
     useDefaultRequestOptions();
-
-    $connectionSettings = SETTINGS['database_con'];
-    $con = new MySQLDatabaseBuilder($connectionSettings);
-    $con->createConnetion()->autoCreateDatabase()->autoCreateTables();
 
     $repository = new Repository($con->getConnection());
 

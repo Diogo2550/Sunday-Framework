@@ -11,10 +11,12 @@ Dentre as funcionalidades previstas para serem criadas estão:
 - Roteamento automático através de controllers.
 
 <hr>
+
 ### Links
-- Requerimentos
-- Instalação
-- Como usar
+- [Requerimentos](#Requerimentos)
+- [Instalação](#Instalação)
+- [Como usar](#Como usar)
+
 <hr>
 
 ### Requerimentos

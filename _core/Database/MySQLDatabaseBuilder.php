@@ -28,6 +28,7 @@ class MySQLDatabaseBuilder implements IDatabaseBuilder {
     
         if(!$this->connection->select_db($db_name)) {
             $this->connection->query("CREATE DATABASE $db_name;");
+            $this->connection->select_db($db_name);
         }
 
         return $this;
