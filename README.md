@@ -15,7 +15,7 @@ Dentre as funcionalidades previstas para serem criadas estão:
 ### Links
 - [Requerimentos](#Requerimentos)
 - [Instalação](#Instalação)
-- [Como usar](#Como usar)
+- Como usar
 
 <hr>
 
@@ -31,10 +31,10 @@ Para utilizar o Sunday Framework é necessário o uso de um servidor local e, at
 ### Instalação
 Caso você possua o composer instalado em sua máquina, basta entrar no diretório de projetos do seu servidor local - no caso do apache é a pasta *htdocs* dentro da pasta raiz do xampp - e rodar em algum console o comando:
 
-`composer create-project diogoadc/sunday-framework`
+`composer create-project diogoadc/sunday-framework:dev-master`
 
 e tudo estará funcionando automaticamente.
-
+ 
 Todavia, caso você não tenha instalado o composer, é possível instalar o Sunday Framework simplesmente fazendo um clone deste repositório e descompactando a pasta no diretório de projetos do seu servidor local.
 
 ### Como usar
