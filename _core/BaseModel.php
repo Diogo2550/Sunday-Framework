@@ -1,5 +1,10 @@
 <?php
 
+namespace Core;
+
+use ReflectionClass;
+use ReflectionProperty;
+
 class BaseModel {
 
     protected $primaryKey = null;
@@ -12,10 +17,15 @@ class BaseModel {
         $props = $class->getProperties(ReflectionProperty::IS_PUBLIC);
         foreach($props as $property) {
             $propName = $property->getName();
+
             $propertyOnTable = $modelName . '_' . $propName;
 
             if(array_key_exists($propertyOnTable, $array)) {
-                $this->$propName = $array[$propertyOnTable];
+                if($property->getType()->getName() == 'DateTime') {
+                    $this->$propName = new \DateTime($array[$propertyOnTable]);
+                } else {
+                    $this->$propName = $array[$propertyOnTable];
+                }
                 continue;
             }
 
@@ -24,23 +34,14 @@ class BaseModel {
         }
     }
 
-    public function toLowerProperties() {
-        $className = get_class($this);
-        
-        $propertys = get_class_vars($className);
-        $values = get_object_vars($this);
-        foreach(array_keys($propertys) as $property) {
-            if(gettype($property) == 'string') {
-                $this->$property = strtolower($values[$property]);
-            }
-        }
-    }
-
     public function getModelName() {
         $className = get_class($this);
+        $className = explode('\\', $className);
+        $className = end($className);
+        
         $modelName = substr($className, 0, strlen($className) - strlen('Model'));
 
-        return strtolower($modelName);
+        return $modelName;
     }
 
     public function getProperties() {

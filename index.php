@@ -1,11 +1,16 @@
 <?php
 
-require_once './_Core/Database/MySQLDatabaseBuilder.php';
-require_once './_Core/Requests/ResquestConf.php';
+require_once './vendor/autoload.php';
 require_once './RestApi.php';
+
+use Core\Builders\QueryBuilder\MySQLQueryBuilder;
+use Core\Builders\ResponseBuilder\HttpResponseBuilder;
+use Core\Database\MySQLDatabaseBuilder;
+use Core\Repository\Repository;
 
 $config = json_decode(file_get_contents("Settings.json"), true);
 define("SETTINGS", $config);
+define('BASE_PATH', getcwd());
 
 $connectionSettings = SETTINGS['database_con'];
 $con = new MySQLDatabaseBuilder($connectionSettings);
@@ -17,7 +22,7 @@ if(isset($_REQUEST) && $_REQUEST['url'] == "") {
     printMessage("<a href='https://github.com/Diogo2550/Sunday-Framework'>GitHub</a>");
 
 } else {
-    useDefaultRequestOptions();
+    \Core\Requests\RequestConf::useDefaultRequestOptions();
 
     $repository = new Repository($con->getConnection());
 

@@ -1,7 +1,9 @@
 <?php
 
-require_once './_Core/BaseController.php';
-require_once './Models/ExampleModel.php';
+namespace Controllers;
+
+use Core\BaseController;
+use Models\ExampleModel;
 
 class ExampleController extends BaseController {
 
@@ -11,10 +13,16 @@ class ExampleController extends BaseController {
 
         $this->query->select($example);
         if($id) {
-            $this->query->where($example, 'id');
+            $this->query->where($example, ['id']);
             return $this->repository->select($this->query);
         }
         
+        return $this->repository->selectAll($this->query);
+    }
+
+    public function getAll() {
+        $example = new ExampleModel;
+        $this->query->select($example);
         return $this->repository->selectAll($this->query);
     }
 
@@ -37,7 +45,7 @@ class ExampleController extends BaseController {
             $this->repository->delete($this->query);
             
             return "usuário deletado com sucesso!";
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return $e->getMessage();
         }
     }
@@ -48,7 +56,7 @@ class ExampleController extends BaseController {
         $example = new ExampleModel;
         $example->patchValues($data);
 
-        $this->query->update($example);
+        $this->query->update($example)->where($example, ['id']);
         return $this->repository->update($this->query);
     }
 

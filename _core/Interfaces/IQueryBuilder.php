@@ -1,10 +1,14 @@
 <?php
 
+namespace Core\Interfaces;
+
+use Core\BaseModel;
+
 interface IQueryBuilder {
 
     function setTable(string $table_name):void;
 
-    function where(BaseModel $model, string $field_name): IQueryBuilder;
+    function where(BaseModel $model, array $field_name): IQueryBuilder;
     function orderBy(array $fields, array $values): IQueryBuilder;
     function groupBy(array $fields, array $values): IQueryBuilder;
     function min(): IQueryBuilder;

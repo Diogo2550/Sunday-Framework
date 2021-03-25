@@ -1,5 +1,7 @@
 <?php
 
+namespace Core\Interfaces;
+
 interface IDatabaseBuilder {
 
     public function createConnetion(): IDatabaseBuilder;

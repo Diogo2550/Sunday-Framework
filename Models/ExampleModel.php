@@ -1,6 +1,8 @@
 <?php
 
-include_once './_Core/BaseModel.php';
+namespace Models;
+
+use Core\BaseModel;
 
 class ExampleModel extends BaseModel {
     

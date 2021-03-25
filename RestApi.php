@@ -1,7 +1,8 @@
 <?php
 
-require_once './_Core/Repository/Repository.php';
-require_once './Controllers/ExampleController.php';
+use Core\Interfaces\IHttpResponseBuilder;
+use Core\Interfaces\IQueryBuilder;
+use Core\Interfaces\IRepository;
 
 class RestAPI {
     
@@ -19,6 +20,7 @@ class RestAPI {
         $url = explode('/', $request['url']);
 
         $class = $this->getRequestedClass($url);
+        $class = "Controllers\\$class";
         $method = $this->getRequestedMethod($url);
         $params = $this->getRequestedParams($url);
 

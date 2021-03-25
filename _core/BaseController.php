@@ -1,10 +1,9 @@
 <?php
 
-require_once './_Core/Interfaces/IRepository.php';
-require_once './_Core/Interfaces/IQueryBuilder.php';
-require_once './_Core/Builders/QueryBuilder/MysqlQueryBuilder.php';
-require_once './_Core/Builders/ResponseBuilder/HttpResponseBuilder.php';
+namespace Core;
 
+use Core\Interfaces\IQueryBuilder;
+use Core\Interfaces\IRepository;
 
 abstract class BaseController {
     

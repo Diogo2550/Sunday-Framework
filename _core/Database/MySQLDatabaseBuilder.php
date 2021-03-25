@@ -1,11 +1,13 @@
 <?php
 
-require_once './_Core/Interfaces/IDatabaseBuilder.php';
+namespace Core\Database;
+
+use Core\Interfaces\IDatabaseBuilder;
 
 class MySQLDatabaseBuilder implements IDatabaseBuilder {
 
     private array $connectionSettings;
-    private mysqli $connection;
+    private \mysqli $connection;
 
     public function __construct(array $connectionSettings) {
         $this->connectionSettings = $connectionSettings;
@@ -17,7 +19,7 @@ class MySQLDatabaseBuilder implements IDatabaseBuilder {
         $db_password = $this->connectionSettings['password'];
         $db_name = $this->connectionSettings['db_name'];
     
-        $this->connection = new mysqli($db_host, $db_username, $db_password);
+        $this->connection = new \mysqli($db_host, $db_username, $db_password);
         $this->connection->select_db($db_name);
     
         return $this; 
@@ -36,9 +38,9 @@ class MySQLDatabaseBuilder implements IDatabaseBuilder {
     
     public function autoCreateTables(bool $autoIncrementPK = true): IDatabaseBuilder {
         $types = array('php');
-        $path = "./models";
+        $path = "./Models";
         
-        $dir = new DirectoryIterator($path);
+        $dir = new \DirectoryIterator($path);
         
         $this->connection->begin_transaction();
         foreach($dir as $archive) {
@@ -48,21 +50,20 @@ class MySQLDatabaseBuilder implements IDatabaseBuilder {
             }
     
             $filename = explode('.', $archive->getFilename())[0];
-            require_once "$path/$filename.php";
     
             $modelName = explode('Model', $filename)[0];
     
-            $ref = new ReflectionClass($filename);
+            $ref = new \ReflectionClass("\Models\\$filename");
 
             // Pegar propriedades
-            $properties = $ref->getProperties(ReflectionMethod::IS_PUBLIC);
+            $properties = $ref->getProperties(\ReflectionMethod::IS_PUBLIC);
             $pk = $ref->getDefaultProperties()['primaryKey'];
             $fk = $ref->getDefaultProperties()['foreignKey'];
 
             $propsAndTypes = array();
             foreach($properties as $prop) {
                 $propAndType = array();
-                $refProp = new ReflectionProperty($filename, $prop->name);
+                $refProp = new \ReflectionProperty("\Models\\$filename", $prop->name);
 
                 $propAndType['name'] = $refProp->getName();
                 $propAndType['type'] = $refProp->getType()->getName();
@@ -95,7 +96,7 @@ class MySQLDatabaseBuilder implements IDatabaseBuilder {
             }
 
             if(!$pk) {
-                throw new Exception("Chave primária não definida em $filename");
+                throw new \Exception("Chave primária não definida em $filename");
             }
 
             $query .= "PRIMARY KEY($pk)";
@@ -106,8 +107,8 @@ class MySQLDatabaseBuilder implements IDatabaseBuilder {
 
         try {
             $this->connection->commit();
-        } catch (Exception $e) {
-            throw new Exception("Falha ao criar tabelas!");
+        } catch (\Exception $e) {
+            throw new \Exception("Falha ao criar tabelas!");
         }
 
         return $this;

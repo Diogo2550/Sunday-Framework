@@ -1,6 +1,8 @@
 <?php
 
-require_once './_Core/Interfaces/IHttpResponseBuilder.php';
+namespace Core\Builders\ResponseBuilder;
+
+use Core\Interfaces\IHttpResponseBuilder;
 
 class HttpResponseBuilder implements IHttpResponseBuilder {
 

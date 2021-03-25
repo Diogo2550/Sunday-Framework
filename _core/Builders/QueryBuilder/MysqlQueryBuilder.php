@@ -1,7 +1,11 @@
 <?php
 
-require_once './_Core/Interfaces/IQueryBuilder.php';
-require_once 'QueryBuilder.php';
+namespace Core\Builders\QueryBuilder;
+
+use Core\BaseModel;
+use Core\Interfaces\IQueryBuilder;
+use Exception;
+use ReflectionClass;
 
 class MySQLQueryBuilder implements IQueryBuilder {
 
@@ -45,9 +49,16 @@ class MySQLQueryBuilder implements IQueryBuilder {
                 if($value === false) {
                     $value = 0;
                 }
-                
+
                 $this->insert['fields'][] = $property;
-                $this->insert['values'][] = $value;
+                if(gettype($model->$property) === 'object') {
+                    $reflection = new ReflectionClass($model->$property);
+                    if($reflection->name == 'DateTime') {
+                        $this->insert['values'][] = $model->$property->format('Y-m-d H:i:s');                        
+                    }
+                } else {
+                    $this->insert['values'][] = $value;
+                }
             }
         }
 
@@ -60,25 +71,23 @@ class MySQLQueryBuilder implements IQueryBuilder {
         $this->update['fields'] = array();
         $this->update['values'] = array();
 
-        $this->where['fields'] = array();
-        $this->where['values'] = array();
-
-        $primaryKey = $model->getPrimaryKey();
-        $fieldName = $primaryKey;
-
-        $this->where['fields'][] = $fieldName;
-        $this->where['values'][] = $model->$primaryKey;
-
         foreach($model->getProperties() as $property) {
-            if(isset($model->$property) && $model->$property != null) {
+            if(isset($model->$property) && $model->$property !== null) {
                 $value = $model->$property;
                 
                 if($value === false) {
                     $value = 0;
                 }
-                
+
                 $this->update['fields'][] = $property;
-                $this->update['values'][] = $value;
+                if(gettype($model->$property) === 'object') {
+                    $reflection = new ReflectionClass($model->$property);
+                    if($reflection->name === 'DateTime') {
+                        $this->update['values'][] = $model->$property->format('Y-m-d H:i:s');                        
+                    }
+                } else {
+                    $this->update['values'][] = $value;
+                }
             }
         }
 
@@ -99,17 +108,19 @@ class MySQLQueryBuilder implements IQueryBuilder {
         return $this;
     }
 
-    function where(BaseModel $model, string $fieldName):IQueryBuilder {
+    function where(BaseModel $model, array $fieldNames):IQueryBuilder {
         $this->where['fields'] = array();
         $this->where['values'] = array();
 
-        if(isset($model->$fieldName) && $model->$fieldName !== null) {
-            $value = $model->$fieldName === false ? 0 : $model->$fieldName;
-            
-            $this->where['fields'][] = $fieldName;
-            $this->where['values'][] = $value;
-        } else {
-            throw new Exception("Campo $fieldName com valor nulo detectado");
+        foreach($fieldNames as $fieldName) {
+            if(isset($model->$fieldName) && $model->$fieldName !== null) {
+                $value = $model->$fieldName === false ? 0 : $model->$fieldName;
+                
+                $this->where['fields'][] = $fieldName;
+                $this->where['values'][] = $value;
+            } else {
+                throw new \Exception("Campo $fieldName com valor nulo detectado");
+            }
         }
         
         return $this;
@@ -169,6 +180,7 @@ class MySQLQueryBuilder implements IQueryBuilder {
             $qb->insertWhereFieldsOnQuery($this->where['fields'], $this->where['values'], $this->table);
         }
 
+        $this->restartQuery();
         return $qb->getQuery();
     }
 
@@ -186,6 +198,7 @@ class MySQLQueryBuilder implements IQueryBuilder {
         $insertValues = implode("','", $this->insert['values']);
         $qb->insertOnQuery(["VALUES", "('$insertValues')"]);
 
+        $this->restartQuery();
         return $qb->getQuery();
     }
 
@@ -199,6 +212,7 @@ class MySQLQueryBuilder implements IQueryBuilder {
         $qb->insertUpdateFieldsOnQuery($this->update['fields'], $this->update['values']);
         $qb->insertWhereFieldsOnQuery($this->where['fields'], $this->where['values'], $this->table);
         
+        $this->restartQuery();
         return $qb->getQuery();
     }
 
@@ -216,15 +230,6 @@ class MySQLQueryBuilder implements IQueryBuilder {
 
     private function restartQuery() {
         $this->where = null;
-        $this->orderBy = null;
-        $this->groupBy = null;
-        $this->limit = null;
-        $this->join = null;
-
-        $this->select = null;
-        $this->insert = null;
-        $this->update = null;
-        $this->delete = null;
     }
 
 }

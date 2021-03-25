@@ -1,5 +1,7 @@
 <?php
 
+namespace Core\Builders\QueryBuilder;
+
 class QueryBuilder {
 
     private array $query;
@@ -37,10 +39,10 @@ class QueryBuilder {
             $query = "";
 
             if($i > 0) {
-                $query .= ",";
+                $query .= "AND ";
             }
 
-            $query .= "$tableName.$field=$values[$i]";
+            $query .= "$tableName.$field='$values[$i]'";
 
             $this->query[] = $query;
         }

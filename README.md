@@ -4,11 +4,18 @@ O Sunday Framework (SF) é um projeto criado por Diogo Alves, estudante do Insti
 O objetivo do projeto é possibilitar a criação de uma API PHP sem necessitar de um amplo conhecimento sobre programação ou sobre desenvolvimento backend, tornando-se assim, perfeita para desenvolvedores frontend que precisam testar seus aplicativos e/ou estudantes que sentem curiosidade e gostaria de ver um aplicativo backend funcionando.
 
 ### Objetivo
-O Sunday Framework tentará abstrair ao máximo todo o processo "complicado" por trás de uma aplicação backend para tanto facilitar, quanto, principalmente, agilizar o processo de criação de um app.
+O Sunday Framework tentará abstrair ao máximo todo o processo "complicado" por trás de uma aplicação backend para, tanto facilitar quanto, principalmente, agilizar o processo de criação de um app.
 
 Dentre as funcionalidades previstas para serem criadas estão:
 - Criação automática de banco de dados e tabelas (MySQL).
 - Roteamento automático através de controllers.
+- Inserção automática de dados no banco através de modelos.
+
+### Futuras features
+- Uma CLI (Command Line Interface - Interface de linha de comando) que possibilite a criação agilizada de models e controllers, assim como, atualização/criação da base de dados.
+- Modo de debug, possibilitando a criação de arquivos de logs para depuração aprofundada de seus códigos.
+- Uma interface que facilite o envio de emails.
+- Uma interface (ou pacote) que possibilite o uso de jason web tokens, para autenticações.
 
 <hr>
 
@@ -21,12 +28,12 @@ Dentre as funcionalidades previstas para serem criadas estão:
 
 ### Requerimentos
 - [Xampp](https://www.apachefriends.org/pt_br/index.html "Xampp")
-- PHP 8.0.0 ou maior
+- PHP 7.4.0 ou maior
 - MySQL
 - De preferência ter o [composer](https://getcomposer.org/download/ "composer") instalado
 - Vontade de criar uma API
 
-Para utilizar o Sunday Framework é necessário o uso de um servidor local e, até o presente momento, o banco de dados MySQL e a linguagem php instalada em sua versão 8 ou superior. Por isso, recomenda-se que se instale o xampp da apache pois o mesmo já vem com todos esses recursos em apenas um pacote.
+Para utilizar o Sunday Framework é necessário o uso de um servidor local, a linguagem php instalada em sua versão 7.4 ou superior e, até o presente momento, o banco de dados MySQL. Por isso, recomenda-se que se instale o xampp da apache pois o mesmo já vem com todos esses recursos em apenas um pacote.
 
 ### Instalação
 Caso você possua o composer instalado em sua máquina, basta entrar no diretório de projetos do seu servidor local - no caso do apache é a pasta *htdocs* dentro da pasta raiz do xampp - e rodar em algum console o comando:
@@ -36,6 +43,12 @@ Caso você possua o composer instalado em sua máquina, basta entrar no diretór
 e tudo estará funcionando automaticamente.
  
 Todavia, caso você não tenha instalado o composer, é possível instalar o Sunday Framework simplesmente fazendo um clone deste repositório e descompactando a pasta no diretório de projetos do seu servidor local.
+
+### Novidades da versão 0.3
+Dentre as mudanças presentes na versão 0.3, podemos citar:
+- Implementação do autoload com a padronização psr-4, isso permite que seus códigos se tornem livres das dezenas de 'require'/'include' fazendo o uso de namespaces.
+- Implementação melhorada do tipo DateTime no banco de dados.
+- Uma série de correções de bugs e outros problemas relatados.
 
 ### Como usar
 #### Introdução
@@ -71,10 +84,10 @@ O método 'autoCreateDatabase()' irá criar automaticamente a database informada
 O método 'autoCreateTables()' irá criar automaticamente as tabelas no banco de dados de acordo com os models existentes na pasta Models.
 Caso não deseja que isso aconteça automaticamente, basta apagar a chamada destas 2 funções, ou seja, a linha deverá ficar:
 
-`$con->createConnection()`
+`$con->createConnection();`
 
 #### settings.json
-O settings.json é o arquivo responsável pela conexão com o banco de dados. Nele você terá de fornecer o host, username, password e o nome do banco de dados.
+O settings.json é o arquivo responsável pela conexão com o banco de dados. Nele você terá de fornecer o host, username, password e o nome do banco de dados presentes em seu MySQL (ou PHPMyAdmin).
 
 #### Models
 A pasta models é responsável por guardar todos os models de sua aplicação mas... o que é um model?

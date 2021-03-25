@@ -1,6 +1,9 @@
 <?php
 
-include_once './_Core/Interfaces/IRepository.php';
+namespace Core\Repository;
+
+use Core\Interfaces\IQueryBuilder;
+use Core\Interfaces\IRepository;
 
 class Repository implements IRepository {
 
@@ -12,25 +15,24 @@ class Repository implements IRepository {
 
     public function insert(IQueryBuilder $query_builder) {
         $query = $query_builder->getInsertQuery();
-
         $result = $this->mysqli->query($query);
     
         if(!$result) {
-            throw new Exception($this->mysqli->error);
+            throw new \Exception($this->mysqli->error);
         }
 
         return $this->mysqli->insert_id;
     }
 
-    public function select(IQueryBuilder $query_builder): object {
+    public function select(IQueryBuilder $query_builder) {
         $query = $query_builder->getSelectQuery();
-        
         $result = $this->mysqli->query($query);
-        $model = new ExampleModel;
-
+        
+        $model = null;
         if($row = $result->fetch_assoc()) {
             $model_name = explode('_', array_keys($row)[0])[0] . 'Model';
-            $model = new $model_name();
+            $model = "Models\\$model_name";
+            $model = new $model();
 
             $model->patchValues($row);
         }
@@ -40,14 +42,14 @@ class Repository implements IRepository {
 
     function selectAll(IQueryBuilder $query_builder): array {
         $query = $query_builder->getSelectQuery();
-        
         $result = $this->mysqli->query($query);
         
         $data = array();
         if($result) {
             while($row = $result->fetch_assoc()) {
                 $model_name = explode('_', array_keys($row)[0])[0] . 'Model';
-                $model = new $model_name();
+                $model = "Models\\$model_name";
+                $model = new $model();
 
                 $model->patchValues($row);
                 array_push($data, $model);
