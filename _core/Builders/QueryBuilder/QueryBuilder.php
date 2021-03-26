@@ -33,6 +33,55 @@ class QueryBuilder {
         }
     }
 
+    public function insertInsertFieldsOnQuery(array $modelArray) {
+        $fields = array();
+        $values = array();
+
+        foreach(array_keys($modelArray) as $key) {
+            if(isset($modelArray[$key])) {
+                $fields[] = $key;
+
+                if(gettype($modelArray[$key]) === 'object') {
+                    $reflection = new \ReflectionClass($modelArray[$key]);
+                    if($reflection->name == 'DateTime') {
+                        $values[] = $modelArray[$key]->format('Y-m-d H:i:s');
+                    }
+                } else {
+                    $values[] = $modelArray[$key];
+                }
+            }
+        }
+
+        $this->query[] = "(`" . implode("`,`", $fields) . "`)";
+        $this->query[] = "VALUES";
+        $this->query[] = "('" . implode("','", $values) . "')";
+    }
+
+    public function insertUpdateFieldsOnQuery(array $modelArray) {
+        $this->query[] = "SET";
+        foreach(array_keys($modelArray) as $i => $key) {
+            if(!isset($modelArray[$key]) || $modelArray[$key] === null) {
+                continue;
+            }
+            $query = "";
+
+            if($i > 0) {
+                $query .= ",";
+            }
+
+            if(gettype($modelArray[$key]) === 'object') {
+                $reflection = new \ReflectionClass($modelArray[$key]);
+                if($reflection->name == 'DateTime') {
+                    $query .= "$key='" . $modelArray[$key]->format('Y-m-d H:i:s') ."'";
+                }
+            } else {
+                $query .= "$key='$modelArray[$key]'";
+            }
+
+            $this->query[] = $query;
+        }
+    }
+    
     public function insertWhereFieldsOnQuery(array $fields, array $values, string $tableName) {
         $this->query[] = "WHERE";
         foreach($fields as $i => $field) {
@@ -43,21 +92,6 @@ class QueryBuilder {
             }
 
             $query .= "$tableName.$field='$values[$i]'";
-
-            $this->query[] = $query;
-        }
-    }
-
-    public function insertUpdateFieldsOnQuery(array $fields, array $values) {
-        $this->query[] = "SET";
-        foreach($fields as $i => $field) {
-            $query = "";
-
-            if($i > 0) {
-                $query .= ",";
-            }
-
-            $query .= "$field='$values[$i]'";
 
             $this->query[] = $query;
         }

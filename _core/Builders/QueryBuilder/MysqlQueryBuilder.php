@@ -9,7 +9,8 @@ use ReflectionClass;
 
 class MySQLQueryBuilder implements IQueryBuilder {
 
-    private $table;
+    private string $table;
+    private array $modelToQuery;
 
     private $where;
     private $orderBy;
@@ -21,103 +22,38 @@ class MySQLQueryBuilder implements IQueryBuilder {
     private $insert;
     private $update;
 
-    function setTable(string $tableName): void {
+    public function setTable(string $tableName): void {
         $this->table = $tableName;
     }
 
-    function select(BaseModel $model): IQueryBuilder {
-        $this->setTable($model->getModelName());
-        $this->select['fields'] = array();
-
-        foreach($model->getProperties() as $property) {
-            $this->select['fields'][] = $property;
-        }
-
-        return $this;
-    }
-
-    function insert(BaseModel $model): IQueryBuilder {
+    public function init(BaseModel $model): IQueryBuilder {
         $this->setTable($model->getModelName());
 
-        $this->insert['fields'] = array();
-        $this->insert['values'] = array();
+        $this->modelToQuery = array();
 
         foreach($model->getProperties() as $property) {
-            if(isset($model->$property) && $model->$property !== null) {
-                $value = $model->$property;
-                
-                if($value === false) {
-                    $value = 0;
-                }
-
-                $this->insert['fields'][] = $property;
-                if(gettype($model->$property) === 'object') {
-                    $reflection = new ReflectionClass($model->$property);
-                    if($reflection->name == 'DateTime') {
-                        $this->insert['values'][] = $model->$property->format('Y-m-d H:i:s');                        
-                    }
-                } else {
-                    $this->insert['values'][] = $value;
-                }
+            if(isset($model->$property)) {
+                $this->modelToQuery[$property] = $model->$property;
+            } else {
+                $this->modelToQuery[$property] = null;
             }
         }
 
         return $this;
     }
 
-    function update(BaseModel $model): IQueryBuilder {
-        $this->setTable($model->getModelName());
-
-        $this->update['fields'] = array();
-        $this->update['values'] = array();
-
-        foreach($model->getProperties() as $property) {
-            if(isset($model->$property) && $model->$property !== null) {
-                $value = $model->$property;
-                
-                if($value === false) {
-                    $value = 0;
-                }
-
-                $this->update['fields'][] = $property;
-                if(gettype($model->$property) === 'object') {
-                    $reflection = new ReflectionClass($model->$property);
-                    if($reflection->name === 'DateTime') {
-                        $this->update['values'][] = $model->$property->format('Y-m-d H:i:s');                        
-                    }
-                } else {
-                    $this->update['values'][] = $value;
-                }
-            }
-        }
-
-        return $this;
-    }
-
-    function delete(BaseModel $model): IQueryBuilder {
-        $this->setTable($model->getModelName());
-
-        $this->where['fields'] = array();
-        $this->where['values'] = array();
-
-        $primaryKey = $model->getPrimaryKey();
-
-        $this->where['fields'][] = $primaryKey;
-        $this->where['values'][] = $model->$primaryKey;
-        
-        return $this;
-    }
-
-    function where(BaseModel $model, array $fieldNames):IQueryBuilder {
-        $this->where['fields'] = array();
-        $this->where['values'] = array();
+    public function where(BaseModel $model, array $fieldNames):IQueryBuilder {
+        $this->where = array(
+            'field' => array(),
+            'value' => array()
+        );
 
         foreach($fieldNames as $fieldName) {
             if(isset($model->$fieldName) && $model->$fieldName !== null) {
                 $value = $model->$fieldName === false ? 0 : $model->$fieldName;
                 
-                $this->where['fields'][] = $fieldName;
-                $this->where['values'][] = $value;
+                $this->where['field'][] = $fieldName;
+                $this->where['value'][] = $value;
             } else {
                 throw new \Exception("Campo $fieldName com valor nulo detectado");
             }
@@ -126,37 +62,37 @@ class MySQLQueryBuilder implements IQueryBuilder {
         return $this;
     }
 
-    function orderBy(array $fields, array $values): IQueryBuilder {
+    public function orderBy(array $fields, array $values): IQueryBuilder {
         $this->orderBy['fields'] = $fields;
         $this->orderBy['values'] = $values;
 
         return $this;
     }
 
-    function groupBy(array $fields, array $values): IQueryBuilder {
+    public function groupBy(array $fields, array $values): IQueryBuilder {
         $this->groupBy['fields'] = $fields;
         $this->groupBy['values'] = $values;
 
         return $this;
     }
 
-    function limit(int $limit):IQueryBuilder {
+    public function limit(int $limit):IQueryBuilder {
         $this->limit = $limit;
 
         return $this;
     }
 
-    function min():IQueryBuilder {
+    public function min():IQueryBuilder {
         
         return $this;
     }
 
-    function max():IQueryBuilder {
+    public function max():IQueryBuilder {
 
         return $this;
     }
 
-    function join(array $tables, array $fields, array $values): IQueryBuilder {
+    public function join(array $tables, array $fields, array $values): IQueryBuilder {
         $this->join['tables'] = $tables;
         $this->join['fields'] = $fields;
         $this->join['values'] = $values;
@@ -165,19 +101,19 @@ class MySQLQueryBuilder implements IQueryBuilder {
     }
 
     public function getSelectQuery(): string {
-        if(!$this->select) {
-            throw new Exception("Error ao tentar pegar a string de seleção. Talvez você tenha esquecido de colocar o 'query->select()'");
+        if(!isset($this->modelToQuery)) {
+            throw new Exception("Error ao tentar pegar a string de seleção. Talvez você tenha esquecido de chamar a função 'init()'");
         }
 
         $qb = new QueryBuilder;
-        $selectFields = $this->select['fields'] ? $this->select['fields'] : '*';
+        $selectFields = array_keys($this->modelToQuery);
 
         $qb->insertOnQuery(["SELECT"]);
         $qb->insertSelectFieldsOnQuery($selectFields, $this->table);
         $qb->insertOnQuery(["FROM", "`$this->table`"]);
 
         if($this->where) {
-            $qb->insertWhereFieldsOnQuery($this->where['fields'], $this->where['values'], $this->table);
+            $qb->insertWhereFieldsOnQuery($this->where['field'], $this->where['value'], $this->table);
         }
 
         $this->restartQuery();
@@ -185,43 +121,42 @@ class MySQLQueryBuilder implements IQueryBuilder {
     }
 
     public function getInsertQuery(): string {
-        if(!$this->insert) {
-            throw new Exception("Error ao tentar pegar a string de inserção. Talvez você tenha esquecido de colocar o 'query->insert()'");
+        if(!isset($this->modelToQuery)) {
+            throw new Exception("Error ao tentar pegar a string de inserção. Talvez você tenha esquecido de chamar a função 'init()'");
         }
 
         $qb = new QueryBuilder;
         $qb->insertOnQuery(["INSERT", "INTO", "$this->table"]);
-
-        $insertFields = implode(',', $this->insert['fields']);
-        $qb->insertOnQuery(["($insertFields)"]);
-
-        $insertValues = implode("','", $this->insert['values']);
-        $qb->insertOnQuery(["VALUES", "('$insertValues')"]);
+        $qb->insertInsertFieldsOnQuery($this->modelToQuery);
 
         $this->restartQuery();
         return $qb->getQuery();
     }
 
     public function getUpdateQuery(): string {
-        if(!$this->update) {
-            throw new Exception("Error ao tentar pegar a string de atualização. Talvez você tenha esquecido de colocar o 'query->update()'");
+        if(!isset($this->modelToQuery)) {
+            throw new Exception("Error ao tentar pegar a string de atualização. Talvez você tenha esquecido de chamar a função 'init()'");
         }
 
         $qb = new QueryBuilder;
         $qb->insertOnQuery(["UPDATE", "$this->table"]);
-        $qb->insertUpdateFieldsOnQuery($this->update['fields'], $this->update['values']);
-        $qb->insertWhereFieldsOnQuery($this->where['fields'], $this->where['values'], $this->table);
+        $qb->insertUpdateFieldsOnQuery($this->modelToQuery);
+        $qb->insertWhereFieldsOnQuery($this->where['field'], $this->where['value'], $this->table);
         
         $this->restartQuery();
         return $qb->getQuery();
     }
 
     public function getDeleteQuery(): string {
+        if(!isset($this->modelToQuery)) {
+            throw new Exception("Error ao tentar pegar a string de atualização. Talvez você tenha esquecido de chamar a função 'init()'");
+        }
+
         $qb = new QueryBuilder;
         $qb->insertOnQuery(["DELETE", "FROM", "$this->table"]);
 
         if($this->where) {
-            $qb->insertWhereFieldsOnQuery($this->where['fields'], $this->where['values'], $this->table);
+            $qb->insertWhereFieldsOnQuery($this->where['field'], $this->where['value'], $this->table);
         }
 
         $this->restartQuery();

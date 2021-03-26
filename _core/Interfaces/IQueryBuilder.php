@@ -8,6 +8,7 @@ interface IQueryBuilder {
 
     function setTable(string $table_name):void;
 
+    function init(BaseModel $model);
     function where(BaseModel $model, array $field_name): IQueryBuilder;
     function orderBy(array $fields, array $values): IQueryBuilder;
     function groupBy(array $fields, array $values): IQueryBuilder;
@@ -15,11 +16,7 @@ interface IQueryBuilder {
     function max(): IQueryBuilder;
     function limit(int $limit): IQueryBuilder;
     function join(array $tables, array $fields, array $values): IQueryBuilder;
-    function select(BaseModel $model): IQueryBuilder;
-    function insert(BaseModel $model): IQueryBuilder;
-    function update(BaseModel $model): IQueryBuilder;
-    function delete(BaseModel $model): IQueryBuilder;
-
+    
     function getInsertQuery(): string;
     function getSelectQuery(): string;
     function getUpdateQuery(): string;

@@ -11,18 +11,17 @@ class ExampleController extends BaseController {
         $example = new ExampleModel;
         $example->id = $id ? $id : 0;
 
-        $this->query->select($example);
+        $this->query->init($example);
         if($id) {
             $this->query->where($example, ['id']);
-            return $this->repository->select($this->query);
         }
-        
-        return $this->repository->selectAll($this->query);
+
+        return $this->repository->select($this->query);
     }
 
     public function getAll() {
         $example = new ExampleModel;
-        $this->query->select($example);
+        $this->query->init($example);
         return $this->repository->selectAll($this->query);
     }
 
@@ -32,7 +31,7 @@ class ExampleController extends BaseController {
         $example = new ExampleModel;
         $example->patchValues($data);
 
-        $this->query->insert($example);
+        $this->query->init($example);
         return $this->repository->insert($this->query);
     }
 
@@ -40,11 +39,11 @@ class ExampleController extends BaseController {
         $example = new ExampleModel;
         $example->id = $id;
 
-        $this->query->delete($example);
+        $this->query->init($example)->where($example, ['id']);
         try {
             $this->repository->delete($this->query);
             
-            return "usuário deletado com sucesso!";
+            //return "usuário deletado com sucesso!";
         } catch (\Exception $e) {
             return $e->getMessage();
         }
@@ -56,7 +55,7 @@ class ExampleController extends BaseController {
         $example = new ExampleModel;
         $example->patchValues($data);
 
-        $this->query->update($example)->where($example, ['id']);
+        $this->query->init($example)->where($example, ['id']);
         return $this->repository->update($this->query);
     }
 
