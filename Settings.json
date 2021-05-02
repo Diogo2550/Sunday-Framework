@@ -1,0 +1,9 @@
+{
+    "database_con": {
+        "host": "localhost",
+        "username": "user",
+        "password": "password",
+        "db_name": "sunday_framework"
+    },
+    "allowed_hosts": "*"
+}

@@ -13,7 +13,9 @@ class ExampleController extends BaseController {
 
         $this->query->init($example);
         if($id) {
-            $this->query->where($example, ['id']);
+            $this->query->where([
+                'id' => $example->id
+            ]);
         }
 
         return $this->repository->select($this->query);
@@ -39,7 +41,9 @@ class ExampleController extends BaseController {
         $example = new ExampleModel;
         $example->id = $id;
 
-        $this->query->init($example)->where($example, ['id']);
+        $this->query->init($example)->where([
+            'id' => $example->id
+        ]);
         try {
             $this->repository->delete($this->query);
             
@@ -55,7 +59,9 @@ class ExampleController extends BaseController {
         $example = new ExampleModel;
         $example->patchValues($data);
 
-        $this->query->init($example)->where($example, ['id']);
+        $this->query->init($example)->where([
+            'id' => $example->id
+        ]);
         return $this->repository->update($this->query);
     }
 
